@@ -1,0 +1,58 @@
+# API URL EXAMPLES
+# https://api.coinmarketcap.com/data-api/v3/cryptocurrency/detail/?slug=vechain
+
+urls = {
+    "token_data": "https://api.coinmarketcap.com/data-api/v3/cryptocurrency/detail/?slug="
+}
+
+
+# "statistics": {
+#       "price": 64200.1764121952,
+#       "priceChangePercentage1h": 0.05653491,
+#       "priceChangePercentage24h": 0.06308163,
+#       "priceChangePercentage7d": 7.40135018,
+#       "priceChangePercentage30d": -4.90926364,
+#       "priceChangePercentage60d": 4.15747998,
+#       "priceChangePercentage90d": -7.87535893,
+#       "priceChangePercentage1y": 147.79895632,
+#       "priceChangePercentageAll": 103827700.952941,
+#       "marketCap": 1267629465850.5,
+#       "marketCapChangePercentage24h": 0.0651,
+#       "fullyDilutedMarketCap": 1348203704656.1,
+#       "fullyDilutedMarketCapChangePercentage24h": 0.06,
+#       "circulatingSupply": 19744953,
+#       "totalSupply": 19744953,
+#       "maxSupply": 21000000,
+#       "marketCapDominance": 56.1623,
+#       "rank": 1,
+#       "roi": 103816388.761267,
+#       "low24h": 63619.9172143709,
+#       "high24h": 64523.1713407567,
+#       "low7d": 57864.7095096926,
+#       "high7d": 64947.0617611003,
+#       "low30d": 49121.2373775943,
+#       "high30d": 69987.5422080099,
+#       "low90d": 49121.2373775943,
+#       "high90d": 71907.8489829092,
+#       "low52w": 24930.2974941684,
+#       "high52w": 73750.07385038,
+#       "lowAllTime": 0.04864654,
+#       "highAllTime": 73750.07385038,
+#       "lowAllTimeChangePercentage": 131972649.58,
+#       "highAllTimeChangePercentage": -12.95,
+#       "lowAllTimeTimestamp": "2010-07-14T19:24:00.000Z",
+#       "highAllTimeTimestamp": "2024-03-14T07:07:00.000Z",
+#       "lowYesterday": 63619.9172143709,
+#       "highYesterday": 64513.7904970015,
+#       "openYesterday": 64103.8695897208,
+#       "closeYesterday": 64178.9906500623,
+#       "priceChangePercentageYesterday": 0.12,
+#       "volumeYesterday": 21430585163.21,
+#       "turnover": 0.01572922,
+#       "ytdPriceChangePercentage": 45.3567,
+#       "volumeRank": 2,
+#       "volumeMcRank": 3459,
+#       "mcTotalNum": 9990,
+#       "volumeTotalNum": 9990,
+#       "volumeMcTotalNum": 9990
+#     },
