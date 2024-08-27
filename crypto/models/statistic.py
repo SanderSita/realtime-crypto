@@ -12,7 +12,9 @@ class Statistic:
         self.marketCap = kwargs.get("marketCap")
         self.marketCapChangePercentage24h = kwargs.get("marketCapChangePercentage24h")
         self.fullyDilutedMarketCap = kwargs.get("fullyDilutedMarketCap")
-        self.fullyDilutedMarketCapChangePercentage24h = kwargs.get("fullyDilutedMarketCapChangePercentage24h")
+        self.fullyDilutedMarketCapChangePercentage24h = kwargs.get(
+            "fullyDilutedMarketCapChangePercentage24h"
+        )
         self.circulatingSupply = kwargs.get("circulatingSupply")
         self.totalSupply = kwargs.get("totalSupply")
         self.maxSupply = kwargs.get("maxSupply")
@@ -39,7 +41,9 @@ class Statistic:
         self.highYesterday = kwargs.get("highYesterday")
         self.openYesterday = kwargs.get("openYesterday")
         self.closeYesterday = kwargs.get("closeYesterday")
-        self.priceChangePercentageYesterday = kwargs.get("priceChangePercentageYesterday")
+        self.priceChangePercentageYesterday = kwargs.get(
+            "priceChangePercentageYesterday"
+        )
         self.volumeYesterday = kwargs.get("volumeYesterday")
         self.turnover = kwargs.get("turnover")
         self.ytdPriceChangePercentage = kwargs.get("ytdPriceChangePercentage")
@@ -48,8 +52,6 @@ class Statistic:
         self.mcTotalNum = kwargs.get("mcTotalNum")
         self.volumeTotalNum = kwargs.get("volumeTotalNum")
         self.volumeMcTotalNum = kwargs.get("volumeMcTotalNum")
-        
+
     def get_price(self) -> float:
         return self.price
-        
-    
