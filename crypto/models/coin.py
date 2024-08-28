@@ -3,8 +3,7 @@ import httpx
 from crypto.urls import urls
 from crypto.models.statistic import Statistic
 import json
-import websocket
-import rel
+import websockets
 
 
 class Coin:
@@ -55,29 +54,19 @@ class Coin:
     def on_open(self, ws):
         print("Opened connection")
 
-    def websocket_init(self, callback):
-        websocket.enableTrace(False)
-        ws = websocket.WebSocketApp(
-            "wss://push.coinmarketcap.com/ws",
-            on_open=self.on_open,
-            on_message=callback,
-            on_error=self.on_error,
-            on_close=self.on_close,
-            header={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0"
-            },
-        )
-
-        ws.run_forever(
-            dispatcher=rel, reconnect=5
-        )  # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
-
-        msg = {
-            "method": "RSUBSCRIPTION",
-            "params": ["main-site@crypto_price_5s@{}@normal", "1"],
+    async def websocket_init(self, callback):
+        uri = "wss://push.coinmarketcap.com/ws"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0"
         }
 
-        ws.send_text(json.dumps(msg))
+        async with websockets.connect(uri, extra_headers=headers) as ws:
+            msg = {
+                "method": "RSUBSCRIPTION",
+                "params": ["main-site@crypto_price_5s@{}@normal", f"{self.id}"],
+            }
+            await ws.send(json.dumps(msg))
 
-        rel.signal(2, rel.abort)
-        rel.dispatch()
+            # Listen for messages
+            async for message in ws:
+                callback(message)

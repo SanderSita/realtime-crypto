@@ -3,6 +3,7 @@ from urls import urls
 from crypto.models.coin import Coin
 from crypto.models.statistic import Statistic
 import json
+import asyncio
 
 
 class API:
@@ -39,17 +40,28 @@ class API:
         pass
 
 
-def on_message(ws, message):
+def on_message(message):
+    print(message)
     json_dict = json.loads(message)
-    new_price = json_dict["d"]["p"]
-    print(new_price)
+    print(json_dict)
+    # new_price = json_dict["d"]["p"]
+    # print(new_price)
+
+
+async def gtr():
+    api = API()
+
+    # Define coroutines to initialize websockets concurrently
+    async def initialize_websocket(coin_name):
+        coin = api.get_coin(coin_name)
+        await coin.websocket_init(on_message)  # Ensure websocket_init is async
+
+    # List of coin names
+    coin_names = ["sui", "vechain", "bitcoin", "ethereum"]
+
+    # Run all websocket initializations concurrently
+    await asyncio.gather(*(initialize_websocket(coin) for coin in coin_names))
 
 
 if __name__ == "__main__":
-    api = API()
-    # coin_data = api.get_coin_data("bitcoin")
-    # print(coin_data)
-    # price = api.get_current_price('vechain')
-    # print(price)
-    coin = api.get_coin("bitcoin")
-    coin.websocket_init(on_message)
+    asyncio.run(gtr())
