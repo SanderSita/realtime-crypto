@@ -1,5 +1,6 @@
 from typing import Any, Type
 import httpx
+from crypto.models.crypto_websocket import CryptoWebsocket
 from crypto.urls import urls
 from crypto.models.statistic import Statistic
 import json
@@ -26,47 +27,36 @@ class Coin:
     def get_description(self) -> str:
         return self.description
 
-    def get_price(self):
+    def get_statistics(self) -> Statistic:
+        return self.price_stats
+
+    def get_current_price(self):
         res = httpx.get(urls["token_data"] + self.slug)
         new_price = res.json()["data"]["statistics"]["price"]
         self.price = new_price
         return self.price
 
-    def get_realtime_price(self):
-        pass
+    @classmethod
+    def get_price(cls, slug: str):
+        """
+        Fetch the current price of a cryptocurrency by its slug.
+        Example usage: Coin.get_price('bitcoin')
+        """
+        res = httpx.get(urls["token_data"] + slug)
+        if res.status_code != 200:
+            raise Exception(f"Failed to fetch data for {slug}: {res.text}")
+
+        json_data = res.json()
+        if json_data["status"]["error_code"] != "0":
+            raise Exception(
+                f"Error in response: {json_data['status']['error_message']}"
+            )
+
+        new_price = json_data["data"]["statistics"]["price"]
+        return new_price
+
+    def get_realtime_price(self, callback):
+        crypto_socket = CryptoWebsocket(callback)
 
     def __repr__(self) -> str:
         return f"this is {self.symbol}"
-
-    def on_message(self, ws, message):
-        json_dict = json.loads(message)
-        id = json_dict["d"]["id"]
-        new_price = json_dict["d"]["p"]
-        self.price = new_price
-        print(self.symbol, self.price)
-
-    def on_error(self, ws, error):
-        print(error)
-
-    def on_close(self, ws, close_status_code, close_msg):
-        print("### closed ###")
-
-    def on_open(self, ws):
-        print("Opened connection")
-
-    async def websocket_init(self, callback):
-        uri = "wss://push.coinmarketcap.com/ws"
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0"
-        }
-
-        async with websockets.connect(uri, extra_headers=headers) as ws:
-            msg = {
-                "method": "RSUBSCRIPTION",
-                "params": ["main-site@crypto_price_5s@{}@normal", f"{self.id}"],
-            }
-            await ws.send(json.dumps(msg))
-
-            # Listen for messages
-            async for message in ws:
-                callback(message)
