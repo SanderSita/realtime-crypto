@@ -1,19 +1,19 @@
 from typing import Callable
 import httpx
 from crypto.models.crypto_websocket import CryptoWebsocket
-from urls import urls
 from crypto.models.coin import Coin
 from crypto.models.statistic import Statistic
 import asyncio
 from crypto.models.websocket_details import WebsocketDetails
+from crypto.urls import get_token_data_url
 
 
 class RealtimeCryptoTracker:
     def __init__(self):
         self.client = httpx.Client()
 
-    def get_coin(self, slug: str) -> Coin:
-        res = self.client.get(urls["token_data"] + slug)
+    def get_coin(self, coin_name: str) -> Coin:
+        res = self.client.get(get_token_data_url(coin_name))
         json_data = res.json()["data"]
 
         price_stats = Statistic(**json_data["statistics"])
@@ -22,14 +22,14 @@ class RealtimeCryptoTracker:
         desc = json_data["description"]
         symbol = json_data["symbol"]
 
-        coin_obj = Coin(id, symbol, slug, desc, price_stats)
+        coin_obj = Coin(id, symbol, coin_name, desc, price_stats)
         return coin_obj
 
-    def get_current_price(self, crypto_name: str):
+    def get_current_price(self, coin_name: str):
         """
         slug: provide the slug of a coin, for example https://coinmarketcap.com/currencies/bitcoin/ is "bitcoin"
         """
-        res = self.client.get(urls["token_data"] + crypto_name)
+        res = self.client.get(get_token_data_url(coin_name))
         price_json = res.json()
 
         if price_json["status"]["error_code"] != "0":
@@ -39,9 +39,8 @@ class RealtimeCryptoTracker:
 
         return price
 
-    @classmethod
     def get_coin_id(self, coin_name: str) -> int:
-        res = self.client.get(urls["token_data"] + coin_name)
+        res = self.client.get(get_token_data_url(coin_name))
         json_data = res.json()["data"]
         id = json_data["id"]
         return int(id)

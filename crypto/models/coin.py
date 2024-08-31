@@ -1,10 +1,7 @@
-from typing import Any, Type
 import httpx
 from crypto.models.crypto_websocket import CryptoWebsocket
-from crypto.urls import urls
+from crypto.urls import get_token_data_url
 from crypto.models.statistic import Statistic
-import json
-import websockets
 
 
 class Coin:
@@ -31,7 +28,7 @@ class Coin:
         return self.price_stats
 
     def get_current_price(self):
-        res = httpx.get(urls["token_data"] + self.slug)
+        res = httpx.get(get_token_data_url(self.slug))
         new_price = res.json()["data"]["statistics"]["price"]
         self.price = new_price
         return self.price
@@ -42,7 +39,7 @@ class Coin:
         Fetch the current price of a cryptocurrency by its slug.
         Example usage: Coin.get_price('bitcoin')
         """
-        res = httpx.get(urls["token_data"] + slug)
+        res = httpx.get(get_token_data_url(slug))
         if res.status_code != 200:
             raise Exception(f"Failed to fetch data for {slug}: {res.text}")
 
