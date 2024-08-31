@@ -4,11 +4,11 @@ from crypto.models.crypto_websocket import CryptoWebsocket
 from urls import urls
 from crypto.models.coin import Coin
 from crypto.models.statistic import Statistic
-import json
 import asyncio
+from crypto.models.websocket_details import WebsocketDetails
 
 
-class RealtimeCrypto:
+class RealtimeCryptoTracker:
     def __init__(self):
         self.client = httpx.Client()
 
@@ -36,8 +36,7 @@ class RealtimeCrypto:
             return 0
 
         price = price_json["data"]["statistics"]["price"]
-        print(type(price))
-        print(price)
+
         return price
 
     @classmethod
@@ -47,8 +46,8 @@ class RealtimeCrypto:
         id = json_data["id"]
         return int(id)
 
-    async def realtime_prices(self, crypto_names: list[str], callback: Callable):
-        crypto_ws = CryptoWebsocket(crypto_names, callback)
+    async def realtime_prices(self, cryptocurrencies: list[str], callback: Callable):
+        crypto_ws = CryptoWebsocket(cryptocurrencies, callback)
         await crypto_ws.websocket_init()
 
     def get_top_100_coins(self):
@@ -56,13 +55,65 @@ class RealtimeCrypto:
 
 
 async def main():
-    realtime_crypto = RealtimeCrypto()
-    li = ["bitcoin"]
+    tracker = RealtimeCryptoTracker()
+    li = [
+        "bitcoin",  # BTC
+        "ethereum",  # ETH
+        "binancecoin",  # BNB
+        "cardano",  # ADA
+        "solana",  # SOL
+        "ripple",  # XRP
+        "polkadot",  # DOT
+        "dogecoin",  # DOGE
+        "litecoin",  # LTC
+        "chainlink",  # LINK
+        "avalanche",  # AVAX
+        "tron",  # TRX
+        "stellar",  # XLM
+        "monero",  # XMR
+        "tezos",  # XTZ
+        "vechain",  # VET
+        "uniswap",  # UNI
+        "shiba-inu",  # SHIB
+        "aave",  # AAVE
+        "cosmos",  # ATOM
+        "filecoin",  # FIL
+        "theta",  # THETA
+        "algorand",  # ALGO
+        "elrond",  # EGLD
+        "zcash",  # ZEC
+        "decentraland",  # MANA
+        "hedera",  # HBAR
+        "vechain",  # VET
+        "pepe",  # PEPE
+        "fantom",  # FTM
+        "terra-luna",  # LUNA
+        "harmony",  # ONE
+        "thorchain",  # RUNE
+        "polygon",  # MATIC
+        "maker",  # MKR
+        "dash",  # DASH
+        "neo",  # NEO
+        "iota",  # MIOTA
+        "eos",  # EOS
+        "pancakeswap",  # CAKE
+        "zilliqa",  # ZIL
+        "enjincoin",  # ENJ
+        "chiliz",  # CHZ
+        "curve-dao-token",  # CRV
+        "compound",  # COMP-
+        "yearn-finance",  # YFI
+        "basic-attention-token",  # BAT
+        "kusama",  # KSM
+        "1inch",  # 1INCH
+        "sushiswap",  # SUSHI
+        "waves",  # WAVES
+    ]
 
-    def print_res(res):
-        print(res)
+    async def print_res(ws_detail: WebsocketDetails):
+        print(ws_detail.get_crypto(), ws_detail.get_new_price())
 
-    asyncio.create_task(realtime_crypto.realtime_prices(li, print_res))
+    asyncio.create_task(tracker.realtime_prices(li, print_res))
 
     print("HEREEEE")
     await asyncio.sleep(200000)
