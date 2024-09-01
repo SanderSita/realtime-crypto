@@ -5,7 +5,8 @@ from crypto.models.coin import Coin
 from crypto.models.statistic import Statistic
 import asyncio
 from crypto.models.websocket_details import WebsocketDetails
-from crypto.urls import get_token_data_url
+from crypto.urls import get_token_data_url, get_top_100_url
+from crypto.models.types import Top100Coin
 
 
 class RealtimeCryptoTracker:
@@ -13,6 +14,9 @@ class RealtimeCryptoTracker:
         self.client = httpx.Client()
 
     def get_coin(self, coin_name: str) -> Coin:
+        """
+        Get data of a single coin.
+        """
         res = self.client.get(get_token_data_url(coin_name))
         json_data = res.json()["data"]
 
@@ -40,17 +44,45 @@ class RealtimeCryptoTracker:
         return price
 
     def get_coin_id(self, coin_name: str) -> int:
+        """
+        Returns the coinmarketcap id of a given crypto
+        """
         res = self.client.get(get_token_data_url(coin_name))
         json_data = res.json()["data"]
         id = json_data["id"]
         return int(id)
 
     async def realtime_prices(self, cryptocurrencies: list[str], callback: Callable):
+        """
+        Joins the coinmarketcap websocket.
+        Get realtime prices through the callback function.
+        """
         crypto_ws = CryptoWebsocket(cryptocurrencies, callback)
         await crypto_ws.websocket_init()
 
-    def get_top_100_coins(self):
-        pass
+    def get_top_100_coins(self) -> list[Top100Coin]:
+        """
+        Get top 100 crypto on coinmarketcap ranked by marketcap.
+
+        Example output
+        {
+            'name': 'Bitcoin',
+            'symbol': 'BTC',
+            'price': '58104.2710616952577758'
+            'rank': 1
+        }
+        """
+        res = self.client.get(get_top_100_url())
+        cryptocurrencies = res.json()["data"]
+        return [
+            {
+                "name": crypto["name"],
+                "symbol": crypto["symbol"],
+                "price": crypto["priceUsd"],
+                "rank": crypto["rank"],
+            }
+            for crypto in cryptocurrencies
+        ]
 
 
 async def main():
@@ -58,7 +90,6 @@ async def main():
     li = [
         "bitcoin",  # BTC
         "ethereum",  # ETH
-        "binancecoin",  # BNB
         "cardano",  # ADA
         "solana",  # SOL
         "ripple",  # XRP
@@ -69,53 +100,14 @@ async def main():
         "avalanche",  # AVAX
         "tron",  # TRX
         "stellar",  # XLM
-        "monero",  # XMR
-        "tezos",  # XTZ
-        "vechain",  # VET
-        "uniswap",  # UNI
-        "shiba-inu",  # SHIB
-        "aave",  # AAVE
-        "cosmos",  # ATOM
-        "filecoin",  # FIL
-        "theta",  # THETA
-        "algorand",  # ALGO
-        "elrond",  # EGLD
-        "zcash",  # ZEC
-        "decentraland",  # MANA
-        "hedera",  # HBAR
-        "vechain",  # VET
-        "pepe",  # PEPE
-        "fantom",  # FTM
-        "terra-luna",  # LUNA
-        "harmony",  # ONE
-        "thorchain",  # RUNE
-        "polygon",  # MATIC
-        "maker",  # MKR
-        "dash",  # DASH
-        "neo",  # NEO
-        "iota",  # MIOTA
-        "eos",  # EOS
-        "pancakeswap",  # CAKE
-        "zilliqa",  # ZIL
-        "enjincoin",  # ENJ
-        "chiliz",  # CHZ
-        "curve-dao-token",  # CRV
-        "compound",  # COMP-
-        "yearn-finance",  # YFI
-        "basic-attention-token",  # BAT
-        "kusama",  # KSM
-        "1inch",  # 1INCH
-        "sushiswap",  # SUSHI
-        "waves",  # WAVES
     ]
 
     async def print_res(ws_detail: WebsocketDetails):
-        print(ws_detail.get_crypto(), ws_detail.get_new_price())
+        new_price = ws_detail.get_new_price()
 
     asyncio.create_task(tracker.realtime_prices(li, print_res))
 
-    print("HEREEEE")
-    await asyncio.sleep(200000)
+    # await asyncio.sleep(200000)
 
 
 if __name__ == "__main__":
