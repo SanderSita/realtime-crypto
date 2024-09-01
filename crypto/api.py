@@ -5,8 +5,8 @@ from crypto.models.coin import Coin
 from crypto.models.statistic import Statistic
 import asyncio
 from crypto.models.websocket_details import WebsocketDetails
-from crypto.urls import get_token_data_url, get_top_100_url
-from crypto.models.types import Top100Coin
+from crypto.urls import get_token_data_url, get_top_100_url, format_history_url
+from crypto.models.types import Top100Coin, HistoryPoint
 
 
 class RealtimeCryptoTracker:
@@ -48,6 +48,10 @@ class RealtimeCryptoTracker:
         Returns the coinmarketcap id of a given crypto
         """
         res = self.client.get(get_token_data_url(coin_name))
+        res_json = res.json()
+        if not "data" in res_json:
+            return 0
+
         json_data = res.json()["data"]
         id = json_data["id"]
         return int(id)
@@ -84,6 +88,31 @@ class RealtimeCryptoTracker:
             for crypto in cryptocurrencies
         ]
 
+    def get_history(self, coin: int | str, range: str) -> list[HistoryPoint]:
+        """
+        Get the price history for a given.
+        Example range inputs: 1h, 1d, 7d, 1m, 3m, 1y
+
+        Return example {'id': '1', 'timestamp': '1723334400', 'price': 60944}
+        """
+        if isinstance(coin, str):
+            coin = self.get_coin_id(coin)
+            if not coin:
+                return None
+
+        res = self.client.get(format_history_url(coin, range))
+        history_json = res.json()
+
+        if history_json["status"]["error_code"] != "0":
+            return
+
+        history_data = history_json["data"]["points"]
+
+        return [
+            {"id": coin, "timestamp": point, "price": history_data[point]["v"][0]}
+            for point in history_data
+        ]
+
 
 async def main():
     tracker = RealtimeCryptoTracker()
@@ -105,8 +134,8 @@ async def main():
     async def print_res(ws_detail: WebsocketDetails):
         new_price = ws_detail.get_new_price()
 
-    asyncio.create_task(tracker.realtime_prices(li, print_res))
-
+    # asyncio.create_task(tracker.realtime_prices(li, print_res))
+    print(tracker.get_history("gtrgtrgrt", "1Y"))
     # await asyncio.sleep(200000)
 
 
