@@ -24,6 +24,7 @@ class RealtimeCryptoTracker:
         """
         Get data of a single coin.
         """
+
         res = self.client.get(get_token_data_url(coin_name))
         json_data = res.json()["data"]
 
@@ -40,6 +41,7 @@ class RealtimeCryptoTracker:
         """
         slug: provide the slug of a coin, for example https://coinmarketcap.com/currencies/bitcoin/ is "bitcoin"
         """
+
         res = self.client.get(get_token_data_url(coin_name))
         price_json = res.json()
 
@@ -54,9 +56,10 @@ class RealtimeCryptoTracker:
         """
         Returns the coinmarketcap id of a given crypto
         """
+
         res = self.client.get(get_token_data_url(coin_name))
         res_json = res.json()
-        if not "data" in res_json:
+        if "data" not in res_json:
             return 0
 
         json_data = res.json()["data"]
@@ -68,6 +71,7 @@ class RealtimeCryptoTracker:
         Joins the coinmarketcap websocket.
         Get realtime prices through the callback function.
         """
+
         crypto_ws = CryptoWebsocket(cryptocurrencies, callback)
         await crypto_ws.websocket_init()
 
@@ -82,6 +86,7 @@ class RealtimeCryptoTracker:
             'price': '58104.2710616952577758'
             'rank': 1
         }
+
         """
         res = self.client.get(get_top_100_url())
         cryptocurrencies = res.json()["data"]
@@ -102,6 +107,7 @@ class RealtimeCryptoTracker:
 
         Return example {'id': '1', 'timestamp': '1723334400', 'price': 60944}
         """
+
         if isinstance(coin, str):
             coin = self.get_coin_id(coin)
             if not coin:
@@ -140,6 +146,7 @@ class RealtimeCryptoTracker:
             }
         ]
         """
+
         res = self.client.get(get_fear_greed_index_url(from_unix, to_unix))
         res_data = res.json()["data"]
         if "dataList" not in res_data:
@@ -150,6 +157,10 @@ class RealtimeCryptoTracker:
         return history_list
 
     def get_current_fear_greed_index(self) -> int:
+        """
+        Get current fear/greed index.
+        """
+
         # Get yesterday unix
         now = datetime.now()
         yesterday = now - timedelta(days=1)
@@ -167,6 +178,15 @@ class RealtimeCryptoTracker:
         score = int(res_data["dataList"][0]["score"])
 
         return score
+
+    def get_best_performing_cryptos(self, range: str):
+        """
+        Get best performing cryptos in the top 100.
+
+        range examples: 24h, 7d
+        """
+
+        pass
 
 
 async def main():

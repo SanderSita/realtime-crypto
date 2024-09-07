@@ -25,6 +25,9 @@ class Coin:
         return self.description
 
     def get_statistics(self) -> Statistic:
+        """
+        Get statistics for this coin.
+        """
         return self.price_stats
 
     def get_current_price(self):
@@ -39,6 +42,7 @@ class Coin:
         Fetch the current price of a cryptocurrency by its slug.
         Example usage: Coin.get_price('bitcoin')
         """
+
         res = httpx.get(get_token_data_url(slug))
         if res.status_code != 200:
             raise Exception(f"Failed to fetch data for {slug}: {res.text}")
