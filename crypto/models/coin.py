@@ -60,7 +60,7 @@ class Coin:
         return new_price
 
     def get_realtime_price(self, callback):
-        crypto_socket = CryptoWebsocket(callback)
+        crypto_socket = CryptoWebsocket([self.get_slug()], callback)
 
     def __repr__(self) -> str:
         return f"this is {self.symbol}"

@@ -184,7 +184,7 @@ class RealtimeCryptoTracker:
 
         return score
 
-    def get_best_performing_cryptos(self, range: str) -> Optional[list]:
+    def get_best_performing_cryptos(self, range: str, reverse=True) -> Optional[list]:
         """
         Get best performing cryptos in the top 100.
 
@@ -204,7 +204,7 @@ class RealtimeCryptoTracker:
 
         if range == "24h":
             sortedli = sorted(
-                top_100_list, key=lambda d: d["changePercent24Hr"], reverse=True
+                top_100_list, key=lambda d: d["changePercent24Hr"], reverse=reverse
             )
 
             return sortedli
@@ -221,7 +221,7 @@ class RealtimeCryptoTracker:
                     {"name": coin_obj.get_slug(), "priceChange" + range: price_change}
                 )
 
-        return sorted(result, key=lambda d: d["priceChange" + range], reverse=True)
+        return sorted(result, key=lambda d: d["priceChange" + range], reverse=reverse)
 
 
 async def main():
@@ -247,7 +247,7 @@ async def main():
         print(f"{name}: {new_price}")
 
     # asyncio.create_task(tracker.realtime_prices(track_list, print_res))
-    print(tracker.get_best_performing_cryptos("7d"))
+    # print(tracker.get_best_performing_cryptos("7d"))
     # print(tracker.get_history("stellar", "1Y"))
     await asyncio.sleep(200000)
 
