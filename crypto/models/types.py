@@ -11,3 +11,9 @@ class HistoryPoint(TypedDict):
     id: int
     timestamp: str
     price: float
+
+
+class GreedFearHistoryPoint(TypedDict):
+    score: float
+    name: str
+    timestamp: str

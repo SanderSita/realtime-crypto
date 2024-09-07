@@ -5,8 +5,15 @@ from crypto.models.coin import Coin
 from crypto.models.statistic import Statistic
 import asyncio
 from crypto.models.websocket_details import WebsocketDetails
-from crypto.urls import get_token_data_url, get_top_100_url, format_history_url
-from crypto.models.types import Top100Coin, HistoryPoint
+from crypto.urls import (
+    get_token_data_url,
+    get_top_100_url,
+    format_history_url,
+    get_fear_greed_index_url,
+)
+from crypto.models.types import Top100Coin, HistoryPoint, GreedFearHistoryPoint
+import time
+from datetime import datetime, timedelta
 
 
 class RealtimeCryptoTracker:
@@ -113,10 +120,58 @@ class RealtimeCryptoTracker:
             for point in history_data
         ]
 
+    def get_fear_greed_index_history(
+        self, from_unix: int, to_unix: int
+    ) -> list[GreedFearHistoryPoint]:
+        """
+        Get the greed/fear index history for a given time frame.
+
+        Return example:
+        [
+            {
+                "score": 36.62,
+                "name": "Fear",
+                "timestamp": "1694131200"
+            },
+            {
+                "score": 32.00,
+                "name": "Fear",
+                "timestamp": "1694931200"
+            }
+        ]
+        """
+        res = self.client.get(get_fear_greed_index_url(from_unix, to_unix))
+        res_data = res.json()["data"]
+        if "dataList" not in res_data:
+            return []
+
+        history_list: list[GreedFearHistoryPoint] = res_data["dataList"]
+
+        return history_list
+
+    def get_current_fear_greed_index(self) -> int:
+        # Get yesterday unix
+        now = datetime.now()
+        yesterday = now - timedelta(days=1)
+        yesterday_unix = int(time.mktime(yesterday.timetuple()))
+
+        now_unix = time.time()
+
+        res = self.client.get(
+            get_fear_greed_index_url(int(yesterday_unix), int(now_unix))
+        )
+        res_data = res.json()["data"]
+        if "dataList" not in res_data:
+            return 0
+
+        score = int(res_data["dataList"][0]["score"])
+
+        return score
+
 
 async def main():
     tracker = RealtimeCryptoTracker()
-    li = [
+    track_list = [
         "bitcoin",  # BTC
         "ethereum",  # ETH
         "cardano",  # ADA
@@ -133,10 +188,13 @@ async def main():
 
     async def print_res(ws_detail: WebsocketDetails):
         new_price = ws_detail.get_new_price()
+        name = ws_detail.get_crypto()
+        print(f"{name}: {new_price}")
 
-    # asyncio.create_task(tracker.realtime_prices(li, print_res))
-    print(tracker.get_history("gtrgtrgrt", "1Y"))
-    # await asyncio.sleep(200000)
+    # asyncio.create_task(tracker.realtime_prices(track_list, print_res))
+    print(tracker.get_fear_greed_index_history(1694101332, 1725717224))
+    # print(tracker.get_history("stellar", "1Y"))
+    await asyncio.sleep(200000)
 
 
 if __name__ == "__main__":
