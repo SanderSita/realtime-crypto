@@ -1,3 +1,6 @@
+from typing import Optional
+
+
 class Statistic:
     def __init__(self, **kwargs) -> None:
         self.price = kwargs.get("price")
@@ -55,3 +58,9 @@ class Statistic:
 
     def get_price(self) -> float:
         return self.price
+
+    def get_price_change(self, range: str) -> Optional[float]:
+        attribute_name = "priceChangePercentage" + range
+        price_change = getattr(self, attribute_name, None)
+
+        return float(price_change) if price_change else None

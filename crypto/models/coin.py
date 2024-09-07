@@ -18,6 +18,9 @@ class Coin:
     def get_id(self) -> int:
         return self.id
 
+    def get_slug(self) -> str:
+        return self.slug
+
     def get_symbol(self) -> str:
         return self.symbol
 

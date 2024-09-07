@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 import httpx
 from crypto.models.crypto_websocket import CryptoWebsocket
 from crypto.models.coin import Coin
@@ -20,12 +20,17 @@ class RealtimeCryptoTracker:
     def __init__(self):
         self.client = httpx.Client()
 
-    def get_coin(self, coin_name: str) -> Coin:
+    def get_coin(self, coin_name: str) -> Optional[Coin]:
         """
         Get data of a single coin.
         """
 
         res = self.client.get(get_token_data_url(coin_name))
+        res_json = res.json()
+
+        if "data" not in res_json:
+            return None
+
         json_data = res.json()["data"]
 
         price_stats = Statistic(**json_data["statistics"])
@@ -179,14 +184,44 @@ class RealtimeCryptoTracker:
 
         return score
 
-    def get_best_performing_cryptos(self, range: str):
+    def get_best_performing_cryptos(self, range: str) -> Optional[list]:
         """
         Get best performing cryptos in the top 100.
 
-        range examples: 24h, 7d
+        range examples: 1h, 24h, 7d, 30d, 60d, 90d, 1y
+
+        Return value is sorted high to low
         """
 
-        pass
+        valid_ranges = ["1h", "24h", "7d", "30d", "60d", "90d", "1y"]
+        if range not in valid_ranges:
+            return None
+
+        result = []
+
+        res = self.client.get(get_top_100_url())
+        top_100_list = res.json()["data"]
+
+        if range == "24h":
+            sortedli = sorted(
+                top_100_list, key=lambda d: d["changePercent24Hr"], reverse=True
+            )
+
+            return sortedli
+
+        for coin in top_100_list:
+            coin_obj = self.get_coin(coin["name"])
+
+            if coin_obj is None:
+                continue
+
+            price_change = coin_obj.get_statistics().get_price_change(range)
+            if price_change:
+                result.append(
+                    {"name": coin_obj.get_slug(), "priceChange" + range: price_change}
+                )
+
+        return sorted(result, key=lambda d: d["priceChange" + range], reverse=True)
 
 
 async def main():
@@ -212,7 +247,7 @@ async def main():
         print(f"{name}: {new_price}")
 
     # asyncio.create_task(tracker.realtime_prices(track_list, print_res))
-    print(tracker.get_fear_greed_index_history(1694101332, 1725717224))
+    print(tracker.get_best_performing_cryptos("7d"))
     # print(tracker.get_history("stellar", "1Y"))
     await asyncio.sleep(200000)
 
