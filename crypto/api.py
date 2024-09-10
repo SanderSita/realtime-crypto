@@ -10,6 +10,7 @@ from crypto.urls import (
     get_top_100_url,
     format_history_url,
     get_fear_greed_index_url,
+    search_coin_url,
 )
 from crypto.models.types import Top100Coin, HistoryPoint, GreedFearHistoryPoint
 import time
@@ -20,18 +21,26 @@ class RealtimeCryptoTracker:
     def __init__(self):
         self.client = httpx.Client()
 
-    def get_coin(self, coin_name: str) -> Optional[Coin]:
+    def _fetch_json(self, url: str) -> Optional[dict]:
+        try:
+            res = self.client.get(url)
+            res.raise_for_status()
+            return res.json()
+        except httpx.HTTPStatusError as e:
+            print("Error occured trying to fetch data")
+            return None
+
+    def get_coin(self, coin_name: str | int) -> Optional[Coin]:
         """
         Get data of a single coin.
         """
 
-        res = self.client.get(get_token_data_url(coin_name))
-        res_json = res.json()
+        res = self._fetch_json(get_token_data_url(coin_name))
 
-        if "data" not in res_json:
+        if "data" not in res:
             return None
 
-        json_data = res.json()["data"]
+        json_data = res["data"]
 
         price_stats = Statistic(**json_data["statistics"])
 
@@ -47,8 +56,7 @@ class RealtimeCryptoTracker:
         slug: provide the slug of a coin, for example https://coinmarketcap.com/currencies/bitcoin/ is "bitcoin"
         """
 
-        res = self.client.get(get_token_data_url(coin_name))
-        price_json = res.json()
+        price_json = self._fetch_json(get_token_data_url(coin_name))
 
         if price_json["status"]["error_code"] != "0":
             return 0
@@ -62,13 +70,12 @@ class RealtimeCryptoTracker:
         Returns the coinmarketcap id of a given crypto
         """
 
-        res = self.client.get(get_token_data_url(coin_name))
-        res_json = res.json()
+        res_json = self._fetch_json(get_token_data_url(coin_name))
+
         if "data" not in res_json:
             return 0
 
-        json_data = res.json()["data"]
-        id = json_data["id"]
+        id = res_json["data"]["id"]
         return int(id)
 
     async def realtime_prices(self, cryptocurrencies: list[str], callback: Callable):
@@ -93,19 +100,19 @@ class RealtimeCryptoTracker:
         }
 
         """
-        res = self.client.get(get_top_100_url())
-        cryptocurrencies = res.json()["data"]
+        cryptocurrencies = self._fetch_json(get_top_100_url())
+
         return [
             {
                 "name": crypto["name"],
                 "symbol": crypto["symbol"],
-                "price": crypto["priceUsd"],
-                "rank": crypto["rank"],
+                "price": crypto["current_price"],
+                "rank": crypto["market_cap_rank"],
             }
             for crypto in cryptocurrencies
         ]
 
-    def get_history(self, coin: int | str, range: str) -> list[HistoryPoint]:
+    def get_history(self, coin: int | str, range: str) -> list[HistoryPoint] | None:
         """
         Get the price history for a given.
         Example range inputs: 1h, 1d, 7d, 1m, 3m, 1y
@@ -118,11 +125,10 @@ class RealtimeCryptoTracker:
             if not coin:
                 return None
 
-        res = self.client.get(format_history_url(coin, range))
-        history_json = res.json()
+        history_json = self._fetch_json(format_history_url(coin, range))
 
         if history_json["status"]["error_code"] != "0":
-            return
+            return None
 
         history_data = history_json["data"]["points"]
 
@@ -152,8 +158,11 @@ class RealtimeCryptoTracker:
         ]
         """
 
-        res = self.client.get(get_fear_greed_index_url(from_unix, to_unix))
-        res_data = res.json()["data"]
+        res = self._fetch_json(get_fear_greed_index_url(from_unix, to_unix))
+        if res is None:
+            return []
+
+        res_data = res["data"]
         if "dataList" not in res_data:
             return []
 
@@ -173,10 +182,13 @@ class RealtimeCryptoTracker:
 
         now_unix = time.time()
 
-        res = self.client.get(
+        res = self._fetch_json(
             get_fear_greed_index_url(int(yesterday_unix), int(now_unix))
         )
-        res_data = res.json()["data"]
+        if res is None:
+            return 0
+
+        res_data = res["data"]
         if "dataList" not in res_data:
             return 0
 
@@ -199,28 +211,41 @@ class RealtimeCryptoTracker:
 
         result = []
 
-        res = self.client.get(get_top_100_url())
-        top_100_list = res.json()["data"]
+        top_100_list = self._fetch_json(get_top_100_url())
 
         if range == "24h":
             sortedli = sorted(
-                top_100_list, key=lambda d: d["changePercent24Hr"], reverse=reverse
+                top_100_list,
+                key=lambda d: d["price_change_percentage_24h"],
+                reverse=reverse,
             )
 
             return sortedli
 
         for coin in top_100_list:
-            coin_obj = self.get_coin(coin["name"])
+            coin_obj = self.get_coin(coin["id"])
 
             if coin_obj is None:
-                continue
+                url_data = search_coin_url(coin["name"])
+                res = self.client.post(url=url_data["url"], json=url_data["body"])
+                searched_coin_slug = res.json()["data"]["suggestions"][1]["tokens"][0][
+                    "slug"
+                ]
+                coin_obj = self.get_coin(searched_coin_slug)
+                if coin_obj is None:
+                    continue
 
             price_change = coin_obj.get_statistics().get_price_change(range)
             if price_change:
                 result.append(
-                    {"name": coin_obj.get_slug(), "priceChange" + range: price_change}
+                    {
+                        "symbol": coin_obj.get_symbol(),
+                        "slug": coin_obj.get_slug(),
+                        "priceChange" + range: price_change,
+                    }
                 )
 
+        print(len(result))
         return sorted(result, key=lambda d: d["priceChange" + range], reverse=reverse)
 
 
@@ -246,10 +271,15 @@ async def main():
         name = ws_detail.get_crypto()
         print(f"{name}: {new_price}")
 
+    # asyncio.create_task(tracker.get_coin("bitcoin").get_realtime_price(print_res))
     # asyncio.create_task(tracker.realtime_prices(track_list, print_res))
-    # print(tracker.get_best_performing_cryptos("7d"))
+    # print(tracker.get_best_performing_cryptos("1h"))
     # print(tracker.get_history("stellar", "1Y"))
-    await asyncio.sleep(200000)
+    # print(tracker.get_coin("ethereum").get_price())
+    # print(tracker.get_current_fear_greed_index())
+    # print(tracker.get_coin("Jupiter-ag").get_statistics().priceChangePercentage1h)
+    # print("hoooi")
+    # await asyncio.sleep(200000)
 
 
 if __name__ == "__main__":

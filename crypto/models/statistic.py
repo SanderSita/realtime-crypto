@@ -56,7 +56,7 @@ class Statistic:
         self.volumeTotalNum = kwargs.get("volumeTotalNum")
         self.volumeMcTotalNum = kwargs.get("volumeMcTotalNum")
 
-    def get_price(self) -> float:
+    def get_price(self) -> Optional[float]:
         return self.price
 
     def get_price_change(self, range: str) -> Optional[float]:

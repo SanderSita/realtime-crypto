@@ -5,6 +5,7 @@ class Top100Coin(TypedDict):
     name: str
     symbol: str
     price: float
+    rank: int
 
 
 class HistoryPoint(TypedDict):

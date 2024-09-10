@@ -6,7 +6,7 @@ from crypto.models.statistic import Statistic
 
 class Coin:
     def __init__(
-        self, id: int, symbol: str, slug: str, desc: str, price_stats: Statistic
+        self, id: int, symbol: str, slug: str | int, desc: str, price_stats: Statistic
     ) -> None:
         self.id = id
         self.symbol = symbol
@@ -18,7 +18,7 @@ class Coin:
     def get_id(self) -> int:
         return self.id
 
-    def get_slug(self) -> str:
+    def get_slug(self) -> str | int:
         return self.slug
 
     def get_symbol(self) -> str:
@@ -33,17 +33,11 @@ class Coin:
         """
         return self.price_stats
 
-    def get_current_price(self):
-        res = httpx.get(get_token_data_url(self.slug))
-        new_price = res.json()["data"]["statistics"]["price"]
-        self.price = new_price
-        return self.price
-
     @classmethod
-    def get_price(cls, slug: str):
+    def get_current_price(self, slug: str):
         """
         Fetch the current price of a cryptocurrency by its slug.
-        Example usage: Coin.get_price('bitcoin')
+        Example usage: Coin.get_current_price('bitcoin')
         """
 
         res = httpx.get(get_token_data_url(slug))
@@ -57,10 +51,15 @@ class Coin:
             )
 
         new_price = json_data["data"]["statistics"]["price"]
+        self.price = new_price
         return new_price
 
-    def get_realtime_price(self, callback):
-        crypto_socket = CryptoWebsocket([self.get_slug()], callback)
+    def get_price(self):
+        return self.price
+
+    async def get_realtime_price(self, callback):
+        crypto_ws = CryptoWebsocket([self.get_slug()], callback)
+        await crypto_ws.websocket_init()
 
     def __repr__(self) -> str:
         return f"this is {self.symbol}"
