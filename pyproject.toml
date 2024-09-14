@@ -1,3 +1,22 @@
+[project]
+name = "realtime-crypto"
+version = "0.0.1"
+authors = [
+  { name="SanderSita", email="sandersekreve@gmail.com" },
+]
+description = "Python package for getting cryptocurrency prices and data from coinmarketcap"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/SanderSita/realtime-crypto"
+Issues = "https://github.com/SanderSita/realtime-crypto/issues"
+
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
