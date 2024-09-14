@@ -3,6 +3,7 @@ import websockets
 import json
 import requests
 from crypto.models.websocket_details import WebsocketDetails
+from crypto.urls import get_token_data_url
 
 
 class CryptoWebsocket:
@@ -21,10 +22,7 @@ class CryptoWebsocket:
     async def websocket_init(self):
         crypto_ids = {}
         for name in self.cryptocurrencies:
-            res = requests.get(
-                "https://api.coinmarketcap.com/data-api/v3/cryptocurrency/detail/?slug="
-                + name
-            )
+            res = requests.get(get_token_data_url(name))
             json_res = res.json()
             if "data" in json_res:
                 id = str(json_res["data"]["id"])
@@ -33,9 +31,8 @@ class CryptoWebsocket:
                 print(
                     f"{name} not found, please make sure the name is correct in the coinmarketcap url"
                 )
-
+        websockets
         async with websockets.connect(self.uri, extra_headers=self.headers) as ws:
-            # {"method":"RSUBSCRIPTION","params":["main-site@crypto_price_5s@{}@normal","1,1027,825,1839,5426,3408,52,74,1958,11419,2010,5805,5994,1975,183"]}
             msg = {
                 "method": "RSUBSCRIPTION",
                 "params": [

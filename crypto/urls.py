@@ -1,5 +1,4 @@
-# API URL EXAMPLES
-# https://api.coinmarketcap.com/data-api/v3/cryptocurrency/detail/?slug=vechain
+# API URLS
 
 
 def get_token_data_url(slug: str | int) -> str:

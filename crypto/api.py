@@ -3,8 +3,6 @@ import httpx
 from crypto.models.crypto_websocket import CryptoWebsocket
 from crypto.models.coin import Coin
 from crypto.models.statistic import Statistic
-import asyncio
-from crypto.models.websocket_details import WebsocketDetails
 from crypto.urls import (
     get_token_data_url,
     get_top_100_url,
@@ -12,12 +10,17 @@ from crypto.urls import (
     get_fear_greed_index_url,
     search_coin_url,
 )
-from crypto.models.types import Top100Coin, HistoryPoint, GreedFearHistoryPoint
+from crypto.models.types import (
+    PerformingCrypto,
+    Top100Coin,
+    HistoryPoint,
+    GreedFearHistoryPoint,
+)
 import time
 from datetime import datetime, timedelta
 
 
-class RealtimeCryptoTracker:
+class RealTimeCrypto:
     def __init__(self):
         self.client = httpx.Client()
 
@@ -196,7 +199,9 @@ class RealtimeCryptoTracker:
 
         return score
 
-    def get_best_performing_cryptos(self, range: str, reverse=True) -> Optional[list]:
+    def get_best_performing_cryptos(
+        self, range: str, reverse=True
+    ) -> Optional[list[PerformingCrypto]]:
         """
         Get best performing cryptos in the top 100.
 
@@ -245,42 +250,18 @@ class RealtimeCryptoTracker:
                     }
                 )
 
-        print(len(result))
         return sorted(result, key=lambda d: d["priceChange" + range], reverse=reverse)
 
+    def search_coin_id(self, search: str) -> Optional[int]:
+        """
+        Get the coinmarketcap ID if a coin, given a coin name / symbol
+        """
+        url_data = search_coin_url(search)
+        res = self.client.post(url=url_data["url"], json=url_data["body"])
+        post_count = res.json()["data"]["suggestions"][0]["postCount"]
 
-async def main():
-    tracker = RealtimeCryptoTracker()
-    track_list = [
-        "bitcoin",  # BTC
-        "ethereum",  # ETH
-        "cardano",  # ADA
-        "solana",  # SOL
-        "ripple",  # XRP
-        "polkadot",  # DOT
-        "dogecoin",  # DOGE
-        "litecoin",  # LTC
-        "chainlink",  # LINK
-        "avalanche",  # AVAX
-        "tron",  # TRX
-        "stellar",  # XLM
-    ]
+        if post_count == "0":
+            return None
 
-    async def print_res(ws_detail: WebsocketDetails):
-        new_price = ws_detail.get_new_price()
-        name = ws_detail.get_crypto()
-        print(f"{name}: {new_price}")
-
-    # asyncio.create_task(tracker.get_coin("bitcoin").get_realtime_price(print_res))
-    # asyncio.create_task(tracker.realtime_prices(track_list, print_res))
-    # print(tracker.get_best_performing_cryptos("1h"))
-    # print(tracker.get_history("stellar", "1Y"))
-    # print(tracker.get_coin("ethereum").get_price())
-    # print(tracker.get_current_fear_greed_index())
-    # print(tracker.get_coin("Jupiter-ag").get_statistics().priceChangePercentage1h)
-    # print("hoooi")
-    # await asyncio.sleep(200000)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+        searched_coin_id = res.json()["data"]["suggestions"][1]["tokens"][0]["id"]
+        return searched_coin_id

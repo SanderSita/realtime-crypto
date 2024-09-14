@@ -1,6 +1,8 @@
+from typing import Optional
 import httpx
 from crypto.models.crypto_websocket import CryptoWebsocket
-from crypto.urls import get_token_data_url
+from crypto.models.types import HistoryPoint
+from crypto.urls import format_history_url, get_token_data_url
 from crypto.models.statistic import Statistic
 
 
@@ -60,6 +62,27 @@ class Coin:
     async def get_realtime_price(self, callback):
         crypto_ws = CryptoWebsocket([self.get_slug()], callback)
         await crypto_ws.websocket_init()
+
+    def get_history(self, range: str) -> Optional[list[HistoryPoint]]:
+        """
+        Get the price history.
+        Example range inputs: 1h, 1d, 7d, 1m, 3m, 1y
+
+        Return example [{'id': '1', 'timestamp': '1723334400', 'price': 60944}]
+        """
+
+        history = httpx.get(format_history_url(self.id, range))
+        history_json = history.json()
+
+        if history_json["status"]["error_code"] != "0":
+            return None
+
+        history_data = history_json["data"]["points"]
+
+        return [
+            {"id": self.id, "timestamp": point, "price": history_data[point]["v"][0]}
+            for point in history_data
+        ]
 
     def __repr__(self) -> str:
         return f"this is {self.symbol}"

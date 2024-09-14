@@ -60,6 +60,12 @@ class Statistic:
         return self.price
 
     def get_price_change(self, range: str) -> Optional[float]:
+        """
+        Get price change in percentage.
+
+        range examples: 1h, 24h, 7d, 30d, 60d, 90d, 1y
+        """
+
         attribute_name = "priceChangePercentage" + range
         price_change = getattr(self, attribute_name, None)
 
