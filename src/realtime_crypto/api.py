@@ -1,16 +1,16 @@
 from typing import Callable, Optional
 import httpx
-from src.models.crypto_websocket import CryptoWebsocket
-from src.models.coin import Coin
-from src.models.statistic import Statistic
-from src.urls import (
+from realtime_crypto.models.crypto_websocket import CryptoWebsocket
+from realtime_crypto.models.coin import Coin
+from realtime_crypto.models.statistic import Statistic
+from realtime_crypto.urls import (
     get_token_data_url,
     get_top_100_url,
     format_history_url,
     get_fear_greed_index_url,
     search_coin_url,
 )
-from src.models.types import (
+from realtime_crypto.models.types import (
     PerformingCrypto,
     Top100Coin,
     HistoryPoint,

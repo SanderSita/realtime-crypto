@@ -1,9 +1,9 @@
 from typing import Optional
 import httpx
-from src.models.crypto_websocket import CryptoWebsocket
-from src.models.types import HistoryPoint
-from src.urls import format_history_url, get_token_data_url
-from src.models.statistic import Statistic
+from realtime_crypto.models.crypto_websocket import CryptoWebsocket
+from realtime_crypto.models.types import HistoryPoint
+from realtime_crypto.urls import format_history_url, get_token_data_url
+from realtime_crypto.models.statistic import Statistic
 
 
 class Coin:
