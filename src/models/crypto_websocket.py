@@ -2,8 +2,8 @@ from typing import Callable
 import websockets
 import json
 import requests
-from crypto.models.websocket_details import WebsocketDetails
-from crypto.urls import get_token_data_url
+from src.models.websocket_details import WebsocketDetails
+from src.urls import get_token_data_url
 
 
 class CryptoWebsocket:
