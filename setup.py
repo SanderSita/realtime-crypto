@@ -1,5 +1,23 @@
-from setuptools import setup, find_packages
-setup(
-    name = 'crypto',
-    packages = find_packages(),
+import setuptools
+
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
+setuptools.setup(
+    name="realtime-crypto",
+    version="0.0.1",
+    author="SanderSita",
+    author_email="sandersekreve@gmail.com",
+    description="Python package for getting cryptocurrency prices and data from coinmarketcap",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/SanderSita/realtime-crypto",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
+    package_dir={"": "src"},
+    packages=setuptools.find_packages(where="src"),
+    python_requires=">=3.6",
 )
