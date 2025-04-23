@@ -19,7 +19,7 @@ Alternatively, install directly from the GitHub repository:
 Usage
 ------------
 ```python
-from realtime-crypto import RealTimeCrypto
+from realtime_crypto import RealTimeCrypto
 import asyncio
 
 tracker = RealTimeCrypto()
