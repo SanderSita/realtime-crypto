@@ -177,26 +177,28 @@ class RealTimeCrypto:
         """
         Get current fear/greed index.
         """
+        import time
+        from datetime import datetime, timedelta
 
-        # Get yesterday unix
-        now = datetime.now()
-        yesterday = now - timedelta(days=1)
-        yesterday_unix = int(time.mktime(yesterday.timetuple()))
-
-        now_unix = time.time()
-
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=30)
+        
+        end_unix = int(time.mktime(end_date.timetuple()))
+        start_unix = int(time.mktime(start_date.timetuple()))
+        
         res = self._fetch_json(
-            get_fear_greed_index_url(int(yesterday_unix), int(now_unix))
+            get_fear_greed_index_url(start_unix, end_unix)
         )
-        if res is None:
+        
+        if res is None or "data" not in res:
             return 0
-
+        
         res_data = res["data"]
-        if "dataList" not in res_data:
+        if "dataList" not in res_data or not res_data["dataList"]:
             return 0
 
-        score = int(res_data["dataList"][0]["score"])
-
+        score = int(res_data["dataList"][-1]["score"])
+        
         return score
 
     def get_best_performing_cryptos(
