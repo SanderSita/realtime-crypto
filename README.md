@@ -49,7 +49,7 @@ tracker.get_best_performing_cryptos("24h")
 async def main():
     async def callback(data):
         new_price = data.get_new_price()
-        name = ws_detail.get_crypto()
+        name = data.get_crypto()
         print(f"{name}: {new_price}")
 
     # Track bitcoin price
